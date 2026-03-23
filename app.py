@@ -4,9 +4,11 @@ import pandas as pd
 # ==============================
 # Anonymization Function
 # ==============================
-def anonymize_dataset(file_path):
+def anonymize_dataset(file):
 
-    df = pd.read_csv(file_path)
+    file.seek(0)
+
+    df = pd.read_csv(file)
 
     df = df.drop(columns=['first','last','street','cc_num','trans_num'], errors='ignore')
 
@@ -41,8 +43,6 @@ def anonymize_dataset(file_path):
 
     df_k['job'] = df_k['job'].replace(rare_jobs, '*')
 
-    df_k.to_csv("anonymized_dataset_final.csv", index=False)
-
     return df_k
 
 
@@ -51,10 +51,12 @@ def anonymize_dataset(file_path):
 # ==============================
 st.title("Privacy-Preserving Data Anonymization System")
 
-uploaded_file = st.file_uploader("Upload CSV file")
+uploaded_file = st.file_uploader("Upload CSV file", type=["csv"])
 
 if uploaded_file is not None:
 
+    # Read once for preview
+    uploaded_file.seek(0)
     df = pd.read_csv(uploaded_file)
 
     st.write("Original Dataset Preview")
@@ -66,5 +68,13 @@ if uploaded_file is not None:
 
         st.write("Anonymized Dataset Preview")
         st.dataframe(result.head())
+
+        csv = result.to_csv(index=False).encode('utf-8')
+        st.download_button(
+            label="Download Anonymized Data",
+            data=csv,
+            file_name='anonymized_dataset.csv',
+            mime='text/csv'
+        )
 
         st.success("Anonymization Completed!")
