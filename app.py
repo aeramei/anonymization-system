@@ -1,12 +1,14 @@
 import streamlit as st
 import pandas as pd
 
-# ==============================
-# Anonymization Function
-# ==============================
+st.set_page_config(page_title="Data Anonymization System", layout="wide")
+
+st.title("🔐 Privacy-Preserving Data Anonymization System")
+st.markdown("Upload your dataset, apply anonymization techniques, and protect sensitive information.")
+
 def anonymize_dataset(file, k):
 
-    file.seek(0)  
+    file.seek(0)
     df = pd.read_csv(file)
 
     df = df.drop(columns=['first','last','street','cc_num','trans_num'], errors='ignore')
@@ -39,7 +41,7 @@ def anonymize_dataset(file, k):
 
     df_k = df[df['count'] >= k].drop(columns=['count'])
 
-    # suppression
+    # Suppression
     job_counts = df_k['job'].value_counts()
     rare_jobs = job_counts[job_counts < 20].index
 
@@ -47,15 +49,14 @@ def anonymize_dataset(file, k):
 
     return df_k
 
-
-# ==============================
-# Streamlit Interface
-# ==============================
-st.title("Privacy-Preserving Data Anonymization System")
+# upload Section
+st.header("📂 Upload Dataset")
 
 uploaded_file = st.file_uploader("Upload CSV file", type=["csv"])
 
 if uploaded_file is not None:
+
+    st.header("📊 Dataset Overview")
 
     uploaded_file.seek(0)
     df = pd.read_csv(uploaded_file)
@@ -66,39 +67,52 @@ if uploaded_file is not None:
         st.error("Dataset must contain: age, gender, city, zip, job")
         st.stop()
 
-    # show dataset info
     st.write("Dataset Shape:", df.shape)
+    st.dataframe(df.head(), use_container_width=True)
 
-    st.write("Original Dataset Preview")
-    st.dataframe(df.head())
+    st.header("⚙️ Anonymization Settings")
 
-    # k slider
-    k = st.slider("Select K value (Privacy Level)", 2, 10, 5)
+    k = st.slider("🔢 Select K value (Higher = More Privacy)", 2, 10, 5)
+    st.caption("Higher K increases privacy but may reduce data utility.")
+    
+    # run Process
+    if st.button("🚀 Run Anonymization"):
 
-    if st.button("Run Anonymization"):
-
-        # spinner
-        with st.spinner("Anonymizing dataset... Please wait ⏳"):
+        with st.spinner("🔄 Processing anonymization..."):
             result = anonymize_dataset(uploaded_file, k)
 
-        st.write("Before vs After Comparison")
+        # result
+        st.header("📈 Results")
+
+        # metrics
+        st.subheader("📊 Summary")
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.metric("Original Records", len(df))
+
+        with col2:
+            st.metric("Anonymized Records", len(result))
+
+        # comparison
+        st.subheader("🔍 Before vs After Comparison")
 
         col1, col2 = st.columns(2)
 
         with col1:
-            st.write("Original")
-            st.dataframe(df.head())
+            st.markdown("**Original Data**")
+            st.dataframe(df.head(), use_container_width=True)
 
         with col2:
-            st.write("Anonymized")
-            st.dataframe(result.head())
+            st.markdown("**Anonymized Data**")
+            st.dataframe(result.head(), use_container_width=True)
 
+        # download
         csv = result.to_csv(index=False).encode('utf-8')
         st.download_button(
-            label="Download Anonymized Data",
+            label="📥 Download Anonymized Dataset",
             data=csv,
             file_name='anonymized_dataset.csv',
             mime='text/csv'
         )
-        
-        st.success(f"Anonymization Completed with K = {k} 🎉")
+        st.success(f"✅ Anonymization successfully completed with K = {k}")
