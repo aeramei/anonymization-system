@@ -45,10 +45,17 @@ def anonymize_dataset(file, k, age_col, gender_col, city_col, zip_col, job_col):
 
     df['age_group'] = df[age_col].apply(generalize_age)
 
-    # zip masking
-    df[zip_col] = df[zip_col].astype(str).str[:3] + "**"
+    #  remove original age
+    df = df.drop(columns=[age_col])
 
-    # K-anonymity
+    # zip masking
+    df['zip_masked'] = df[zip_col].astype(str).str[:3] + "**"
+
+    #  remove original zip
+    df = df.drop(columns=[zip_col])
+
+    # k-anonymity
+    # i selected key quasi-identifiers to balance privacy and data utility
     qi_columns = ['age_group', gender_col, city_col]
     group_counts = df.groupby(qi_columns).size().reset_index(name='count')
     df = df.merge(group_counts, on=qi_columns)
