@@ -49,7 +49,7 @@ def anonymize_dataset(file, k, age_col, gender_col, city_col, zip_col, job_col):
     # remove original age
     df = df.drop(columns=[age_col])
 
-    # ZIP masking (improved)
+    # ZIP masking 
     df[zip_col] = df[zip_col].astype(str).str.zfill(5)
     df['zip_masked'] = df[zip_col].str[:3] + "**"
 
@@ -71,7 +71,6 @@ def anonymize_dataset(file, k, age_col, gender_col, city_col, zip_col, job_col):
         threshold = max(2, int(0.02 * len(df_k)))
         rare_jobs = job_counts[job_counts < threshold].index
 
-        #  warning issue
         df_k.loc[:, job_col] = df_k[job_col].replace(rare_jobs, '*')
 
     return df_k
@@ -90,7 +89,7 @@ if uploaded_file is not None:
     st.write(f"📏 Dataset Shape: {df.shape[0]} rows × {df.shape[1]} columns")
     st.dataframe(df.head(), use_container_width=True)
 
-    # show column types (bonus)
+    # show column types
     st.write("📌 Column Data Types:")
     st.write(df.dtypes)
 
