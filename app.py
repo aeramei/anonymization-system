@@ -71,7 +71,7 @@ def anonymize_dataset(file, k, age_col, gender_col, city_col, zip_col, job_col):
         threshold = max(2, int(0.02 * len(df_k)))
         rare_jobs = job_counts[job_counts < threshold].index
 
-        # FIXED warning issue
+        #  warning issue
         df_k.loc[:, job_col] = df_k[job_col].replace(rare_jobs, '*')
 
     return df_k
